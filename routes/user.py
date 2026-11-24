@@ -2,11 +2,24 @@ from flask import request, jsonify
 from sqlalchemy import asc, desc
 
 from app import app
+from jwt import verify_jwt
 from model.user import User
 
 
 @app.route("/users", methods=["GET"])
 def list_users():
+    # pega o token que veio no header (Authorization: Bearer <token>)
+    auth = request.headers.get("Authorization", "")
+
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "token ausente"}), 401
+
+    token = auth.split(" ")[1]
+    payload = verify_jwt(token)
+
+    if payload is None:
+        return jsonify({"error": "token inválido ou expirado"}), 401
+
     query_params = request.args
 
     page = query_params.get('page', default=0, type=int)

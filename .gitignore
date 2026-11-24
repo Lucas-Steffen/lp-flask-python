@@ -11,6 +11,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.secrets.toml
 .Python
 build/
 develop-eggs/
@@ -81,3 +82,5 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+
+.secrets.toml

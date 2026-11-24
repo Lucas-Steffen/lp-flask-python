@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta, timezone
+
 from app import app, db
 from flask import request, jsonify
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
+from jwt import generate_jwt
 from model.user import User
 
 
@@ -44,3 +47,39 @@ def register():
 
     # Desestruturação da resposta para nn devolver a senha
     return jsonify({"id": novo_user.id, "username": novo_user.username, "email": novo_user.email}), 201
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json(silent=True)
+
+    if data is None:
+        return jsonify({"error": "corpo JSON obrigatório"}), 400
+
+    username = data.get("username")
+    password = data.get("password")
+
+    if username is None or username == "":
+        return jsonify({"error": "username é obrigatório"}), 400
+
+    if password is None or password == "":
+        return jsonify({"error": "password é obrigatório"}), 400
+
+    # procura o usuario no banco
+    user = User.query.filter_by(username=username).first()
+
+    if user is None:
+        return jsonify({"error": "credenciais inválidas"}), 401
+
+    # compara a senha digitada com o hash que esta no banco
+    senha_correta = check_password_hash(user.password, password)
+
+    if senha_correta == False:
+        return jsonify({"error": "credenciais inválidas"}), 401
+
+    # dados que vao dentro do token (o token vale por 1 hora)
+    expira = datetime.now(timezone.utc) + timedelta(hours=1)
+    payload = {"sub": str(user.id), "username": user.username, "exp": expira}
+
+    token = generate_jwt(payload)
+
+    return jsonify({"token": token}), 200
