@@ -1,3 +1,4 @@
+from flask import request
 from jose import jwt, JWTError
 from app import app
 
@@ -21,3 +22,14 @@ def verify_jwt(token):
         return payload
     except JWTError:
         return None
+
+
+# le o header Authorization e devolve o payload do token, ou None se nao der
+def get_token_payload():
+    auth = request.headers.get("Authorization", "")
+
+    if not auth.startswith("Bearer "):
+        return None
+
+    token = auth.split(" ")[1]
+    return verify_jwt(token)
