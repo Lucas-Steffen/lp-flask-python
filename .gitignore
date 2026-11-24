@@ -3,6 +3,7 @@
 out
 gen
 instance/*
+.vscode
 !instance/.gitignore
 .webassets-cache
 .env
