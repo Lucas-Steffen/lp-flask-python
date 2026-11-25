@@ -2,6 +2,7 @@ from app import app, db
 from flask import request, jsonify
 
 from jwt import get_token_payload
+from model.movement import Movement
 from model.product import Product
 
 
@@ -157,6 +158,10 @@ def delete_product(product_id):
     product = Product.query.get(product_id)
     if product is None:
         return jsonify({"error": "produto não encontrado"}), 404
+
+    # não apaga produto que já tem movimentações (preserva o histórico)
+    if Movement.query.filter_by(product_id=product.id).first() is not None:
+        return jsonify({"error": "produto possui movimentações e não pode ser removido"}), 409
 
     db.session.delete(product)
     db.session.commit()
